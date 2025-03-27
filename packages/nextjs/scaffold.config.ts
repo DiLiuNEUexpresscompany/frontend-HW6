@@ -1,4 +1,5 @@
 import * as chains from "viem/chains";
+import { defineChain } from "viem";
 
 export type ScaffoldConfig = {
   targetNetworks: readonly chains.Chain[];
@@ -11,35 +12,42 @@ export type ScaffoldConfig = {
 
 export const DEFAULT_ALCHEMY_API_KEY = "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 
+// 定义 Tenderly 虚拟 Sepolia 测试网
+export const tenderlyVirtualSepolia = defineChain({
+  ...chains.sepolia,
+  id: chains.sepolia.id,
+  name: 'Tenderly Virtual Sepolia',
+  rpcUrls: {
+    default: {
+      http: ['https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25'],
+    },
+    public: {
+      http: ['https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25'],
+    },
+  },
+});
+
 const scaffoldConfig = {
-  // The networks on which your DApp is live
-  targetNetworks: [chains.foundry],
+  // 将 targetNetworks 改为包含 Tenderly 虚拟测试网
+  targetNetworks: [tenderlyVirtualSepolia],
 
-  // The interval at which your front-end polls the RPC servers for new data
-  // it has no effect if you only target the local network (default is 4000)
-  pollingInterval: 30000,
+  // 减少轮询间隔以便更快看到更新（对于测试环境）
+  pollingInterval: 5000,
 
-  // This is ours Alchemy's default API key.
-  // You can get your own at https://dashboard.alchemyapi.io
-  // It's recommended to store it in an env variable:
-  // .env.local for local testing, and in the Vercel/system env config for live apps.
+  // 保持 Alchemy API Key 不变
   alchemyApiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || DEFAULT_ALCHEMY_API_KEY,
 
-  // If you want to use a different RPC for a specific network, you can add it here.
-  // The key is the chain ID, and the value is the HTTP RPC URL
+  // 更新 rpcOverrides 使用我们的 Tenderly RPC URL
   rpcOverrides: {
-    // Example:
-    // [chains.mainnet.id]: "https://mainnet.buidlguidl.com",
+    // 确保使用与 tenderlyVirtualSepolia 相同的 id
+    [chains.sepolia.id]: "https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25",
   },
 
-  // This is ours WalletConnect's default project ID.
-  // You can get your own at https://cloud.walletconnect.com
-  // It's recommended to store it in an env variable:
-  // .env.local for local testing, and in the Vercel/system env config for live apps.
+  // 保持 WalletConnect 项目 ID 不变
   walletConnectProjectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "3a8170812b534d0ff9d794f19a901d64",
 
-  // Only show the Burner Wallet when running on hardhat network
-  onlyLocalBurnerWallet: true,
+  // 由于我们连接的是测试网而不是本地网络，可以将此设为 false
+  onlyLocalBurnerWallet: false,
 } as const satisfies ScaffoldConfig;
 
 export default scaffoldConfig;

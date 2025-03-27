@@ -1,72 +1,285 @@
 "use client";
 
-import Link from "next/link";
-import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
+import { useEffect, useState } from "react";
+import { Address } from "viem";
+import { useDeployedContractInfo } from "~~/hooks/scaffold-eth";
+import { ReservesCurveChart } from "~~/components/uniswap/ReservesCurveChart";
+import { PoolSelector } from "~~/components/uniswap/PoolSelector";
+import { SwapInterface } from "~~/components/uniswap/SwapInterface";
+import { LiquidityInterface } from "~~/components/uniswap/LiquidityInterface";
+import { useReadContract } from "wagmi";
 
-const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
+export default function Home() {
+  const [selectedPool, setSelectedPool] = useState<Address>();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [hasLiquidity, setHasLiquidity] = useState(false);
+  const { data: routerInfo } = useDeployedContractInfo({
+    contractName: "UniswapV2Router02"
+  });
+  const { data: factoryInfo } = useDeployedContractInfo({
+    contractName: "UniswapV2Factory"
+  });
+  const { data: wethInfo } = useDeployedContractInfo({
+    contractName: "WETH"
+  });
 
-  return (
-    <>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address address={connectedAddress} />
-          </div>
+  // Pair 合约的 ABI 片段，用于获取储备量
+  const PAIR_ABI = [
+    {
+      inputs: [],
+      name: "getReserves",
+      outputs: [
+        { name: "reserve0", type: "uint112", internalType: "uint112" },
+        { name: "reserve1", type: "uint112", internalType: "uint112" },
+        { name: "blockTimestampLast", type: "uint32", internalType: "uint32" }
+      ],
+      stateMutability: "view",
+      type: "function"
+    }
+  ] as const;
 
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
-        </div>
+  // 检查池中是否有流动性
+  const { data: reservesData, refetch: refetchReserves } = useReadContract({
+    address: selectedPool as Address,
+    abi: PAIR_ABI,
+    functionName: "getReserves",
+    query: {
+      enabled: !!selectedPool,
+    }
+  });
 
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
+  // 检查池中的流动性状态
+  useEffect(() => {
+    if (reservesData) {
+      const [reserve0, reserve1] = reservesData;
+      // 如果两个储备都大于0，则认为池中有流动性
+      setHasLiquidity(reserve0 > 0n && reserve1 > 0n);
+    } else {
+      setHasLiquidity(false);
+    }
+  }, [reservesData]);
+
+  // 定期刷新储备数据
+  useEffect(() => {
+    if (selectedPool) {
+      const interval = setInterval(() => {
+        refetchReserves();
+      }, 5000); // 每5秒刷新一次
+      return () => clearInterval(interval);
+    }
+  }, [selectedPool, refetchReserves]);
+
+  const handlePoolSelect = (poolAddress: Address) => {
+    setSelectedPool(poolAddress);
+    // 立即刷新储备数据
+    setTimeout(() => refetchReserves(), 500);
+  };
+
+  const handleLiquidityAdded = () => {
+    // 增加刷新触发器，触发相关组件刷新
+    setRefreshTrigger(prev => prev + 1);
+    // 刷新储备数据以检查流动性状态
+    refetchReserves();
+  };
+
+  if (!routerInfo?.address || !factoryInfo?.address) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-base-200 to-base-300 py-8">
+        <div className="container mx-auto px-4">
+          <div className="alert alert-warning shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <h3 className="font-bold">注意!</h3>
+              <div className="text-sm">Router 或 Factory 合约尚未部署，请先部署合约。</div>
             </div>
           </div>
         </div>
       </div>
-    </>
-  );
-};
+    );
+  }
 
-export default Home;
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-base-200 to-base-300 py-8">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Uniswap V2
+          </h1>
+          <p className="text-base-content/60">
+            去中心化交易所 - 交易、提供流动性、赚取收益
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* 左侧面板 */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* 交易对选择器 */}
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+              <div className="card-body">
+                <h2 className="card-title text-2xl font-bold mb-6 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  选择交易对
+                </h2>
+                <PoolSelector 
+                  onPoolSelect={handlePoolSelect} 
+                  factoryAddress={factoryInfo.address}
+                />
+              </div>
+            </div>
+
+            {selectedPool && (
+              <>
+                {/* 添加流动性界面 - 已调整到前面 */}
+                <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+                  <div className="card-body">
+                    <h2 className="card-title text-2xl font-bold mb-2 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      添加流动性
+                    </h2>
+                    {/* 添加流动性提示信息 */}
+                    {!hasLiquidity && (
+                      <div className="alert alert-info mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>在进行交易前，需要先添加足够的流动性</span>
+                      </div>
+                    )}
+                    <LiquidityInterface 
+                      poolAddress={selectedPool} 
+                      routerAddress={routerInfo.address}
+                      wethAddress={wethInfo?.address} 
+                      onLiquidityAdded={handleLiquidityAdded}
+                    />
+                  </div>
+                </div>
+
+                {/* 代币交换界面 - 已调整到后面 */}
+                <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+                  <div className="card-body">
+                    <h2 className="card-title text-2xl font-bold mb-2 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      </svg>
+                      代币交换
+                    </h2>
+                    {/* 流动性不足警告 */}
+                    {!hasLiquidity && (
+                      <div className="alert alert-warning mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div>
+                          <h3 className="font-bold">注意!</h3>
+                          <div className="text-sm">该交易对目前没有流动性，交易可能会失败或价格影响极大。请先添加流动性。</div>
+                        </div>
+                      </div>
+                    )}
+                    <SwapInterface 
+                      poolAddress={selectedPool} 
+                      routerAddress={routerInfo.address} 
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* 右侧面板 */}
+          <div className="lg:col-span-2 space-y-6">
+            {selectedPool ? (
+              <>
+                {/* 池状态信息卡片 */}
+                <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+                  <div className="card-body">
+                    <h2 className="card-title text-xl font-bold mb-2">池状态</h2>
+                    {hasLiquidity ? (
+                      <div className="alert alert-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>池中有流动性，可以进行交易</span>
+                      </div>
+                    ) : (
+                      <div className="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>池中没有流动性，需要先添加</span>
+                      </div>
+                    )}
+                    <div className="text-sm opacity-70 mt-2">
+                      池地址: <span className="font-mono text-xs break-all">{selectedPool}</span>
+                    </div>
+                  </div>
+                </div>
+                
+               {/* 储备曲线图 */}
+              <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+                <div className="card-body">
+                  <h2 className="card-title text-xl font-bold mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    储备曲线
+                  </h2>
+                  {reservesData ? (
+                    <ReservesCurveChart 
+                      poolAddress={selectedPool} 
+                      refreshTrigger={refreshTrigger}
+                      key={`pool-${selectedPool}-refresh-${refreshTrigger}`} // 添加key强制重新渲染
+                    />
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <span className="loading loading-spinner loading-lg"></span>
+                    </div>
+                  )}
+                </div>
+              </div>
+                
+                {/* 操作指南 */}
+                <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+                  <div className="card-body">
+                    <h2 className="card-title text-xl font-bold mb-2">操作指南</h2>
+                    <ol className="list-decimal list-inside space-y-2 text-sm">
+                      <li>
+                        <span className="font-medium">选择交易对</span>
+                        <p className="text-xs ml-5 text-base-content/70">从左侧面板选择或创建交易对</p>
+                      </li>
+                      <li>
+                        <span className="font-medium text-primary">添加流动性</span>
+                        <p className="text-xs ml-5 text-base-content/70">向池中添加足量的流动性才能进行交易</p>
+                      </li>
+                      <li>
+                        <span className="font-medium">进行交易</span>
+                        <p className="text-xs ml-5 text-base-content/70">有足够流动性后，可以进行代币交换</p>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="card bg-base-100 shadow-xl">
+                <div className="card-body items-center text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold mt-4">请选择交易对</h3>
+                  <p className="text-base-content/60 mt-2">
+                    选择交易对后将显示更多功能
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

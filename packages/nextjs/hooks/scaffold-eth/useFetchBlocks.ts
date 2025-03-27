@@ -4,23 +4,21 @@ import {
   Hash,
   Transaction,
   TransactionReceipt,
-  createTestClient,
+  createPublicClient,
+  http,
   publicActions,
   walletActions,
-  webSocket,
 } from "viem";
-import { hardhat } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { decodeTransactionData } from "~~/utils/scaffold-eth";
 
 const BLOCKS_PER_PAGE = 20;
 
-export const testClient = createTestClient({
-  chain: hardhat,
-  mode: "hardhat",
-  transport: webSocket("ws://127.0.0.1:8545"),
-})
-  .extend(publicActions)
-  .extend(walletActions);
+// 使用 createPublicClient 连接到 Tenderly 的虚拟 Sepolia 测试网
+export const publicClient = createPublicClient({
+  chain: sepolia,
+  transport: http('https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25'),
+}).extend(publicActions).extend(walletActions);
 
 export const useFetchBlocks = () => {
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -35,7 +33,7 @@ export const useFetchBlocks = () => {
     setError(null);
 
     try {
-      const blockNumber = await testClient.getBlockNumber();
+      const blockNumber = await publicClient.getBlockNumber();
       setTotalBlocks(blockNumber);
 
       const startingBlock = blockNumber - BigInt(currentPage * BLOCKS_PER_PAGE);
@@ -46,7 +44,7 @@ export const useFetchBlocks = () => {
 
       const blocksWithTransactions = blockNumbersToFetch.map(async blockNumber => {
         try {
-          return testClient.getBlock({ blockNumber, includeTransactions: true });
+          return publicClient.getBlock({ blockNumber, includeTransactions: true });
         } catch (err) {
           setError(err instanceof Error ? err : new Error("An error occurred."));
           throw err;
@@ -62,7 +60,7 @@ export const useFetchBlocks = () => {
         fetchedBlocks.flatMap(block =>
           block.transactions.map(async tx => {
             try {
-              const receipt = await testClient.getTransactionReceipt({ hash: (tx as Transaction).hash });
+              const receipt = await publicClient.getTransactionReceipt({ hash: (tx as Transaction).hash });
               return { [(tx as Transaction).hash]: receipt };
             } catch (err) {
               setError(err instanceof Error ? err : new Error("An error occurred."));
@@ -83,43 +81,51 @@ export const useFetchBlocks = () => {
     fetchBlocks();
   }, [fetchBlocks]);
 
+  // 替换 watchBlocks 方法，使用轮询方式获取新区块
   useEffect(() => {
-    const handleNewBlock = async (newBlock: any) => {
+    if (currentPage !== 0) return;
+
+    let lastKnownBlock: bigint | undefined;
+    const pollInterval = setInterval(async () => {
       try {
-        if (currentPage === 0) {
+        const latestBlockNumber = await publicClient.getBlockNumber();
+        
+        if (!lastKnownBlock || latestBlockNumber > lastKnownBlock) {
+          // 有新区块
+          const newBlock = await publicClient.getBlock({ 
+            blockNumber: latestBlockNumber, 
+            includeTransactions: true 
+          });
+          
+          // 处理新区块数据
           if (newBlock.transactions.length > 0) {
-            const transactionsDetails = await Promise.all(
-              newBlock.transactions.map((txHash: string) => testClient.getTransaction({ hash: txHash as Hash })),
+            newBlock.transactions.forEach((tx: Transaction) => decodeTransactionData(tx as Transaction));
+            
+            const receipts = await Promise.all(
+              newBlock.transactions.map(async (tx: Transaction) => {
+                try {
+                  const receipt = await publicClient.getTransactionReceipt({ hash: (tx as Transaction).hash });
+                  return { [(tx as Transaction).hash]: receipt };
+                } catch (err) {
+                  setError(err instanceof Error ? err : new Error("An error occurred fetching receipt."));
+                  throw err;
+                }
+              }),
             );
-            newBlock.transactions = transactionsDetails;
+            
+            setTransactionReceipts(prevReceipts => ({ ...prevReceipts, ...Object.assign({}, ...receipts) }));
           }
-
-          newBlock.transactions.forEach((tx: Transaction) => decodeTransactionData(tx as Transaction));
-
-          const receipts = await Promise.all(
-            newBlock.transactions.map(async (tx: Transaction) => {
-              try {
-                const receipt = await testClient.getTransactionReceipt({ hash: (tx as Transaction).hash });
-                return { [(tx as Transaction).hash]: receipt };
-              } catch (err) {
-                setError(err instanceof Error ? err : new Error("An error occurred fetching receipt."));
-                throw err;
-              }
-            }),
-          );
-
+          
           setBlocks(prevBlocks => [newBlock, ...prevBlocks.slice(0, BLOCKS_PER_PAGE - 1)]);
-          setTransactionReceipts(prevReceipts => ({ ...prevReceipts, ...Object.assign({}, ...receipts) }));
-        }
-        if (newBlock.number) {
-          setTotalBlocks(newBlock.number);
+          setTotalBlocks(latestBlockNumber);
+          lastKnownBlock = latestBlockNumber;
         }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("An error occurred."));
+        setError(err instanceof Error ? err : new Error("An error occurred during polling."));
       }
-    };
+    }, 5000); // 每5秒轮询一次
 
-    return testClient.watchBlocks({ onBlock: handleNewBlock, includeTransactions: true });
+    return () => clearInterval(pollInterval);
   }, [currentPage]);
 
   return {
