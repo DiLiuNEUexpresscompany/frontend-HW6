@@ -257,7 +257,7 @@ export const ReservesCurveChart = ({
       try {
         const [reserve0, reserve1] = reservesData;
         
-        console.log("获取到的储备数据:", {
+        console.log("Retrieved reserve data:", {
           reserve0: reserve0.toString(),
           reserve1: reserve1.toString()
         });
@@ -267,7 +267,7 @@ export const ReservesCurveChart = ({
         const reserve1Adjusted = Number(reserve1) / 10 ** token1Decimals;
         const price = reserve1Adjusted / reserve0Adjusted;
         
-        console.log("计算的价格:", {
+        console.log("Calculated price:", {
           reserve0Adjusted,
           reserve1Adjusted,
           price
@@ -281,8 +281,8 @@ export const ReservesCurveChart = ({
         });
         setError(null);
       } catch (err) {
-        console.error('处理储备数据失败:', err);
-        setError(err instanceof Error ? err.message : '处理储备数据失败');
+        console.error('Failed to process reserve data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to process reserve data');
       } finally {
         setIsLoading(false);
       }
@@ -293,7 +293,7 @@ export const ReservesCurveChart = ({
   useEffect(() => {
     if (!canvasRef.current || !reservesData || currentPrice === 0) return;
 
-    console.log("开始绘制图表", {
+    console.log("Starting chart drawing", {
       reserve0: reservesData[0].toString(),
       reserve1: reservesData[1].toString(),
       currentPrice,
@@ -309,7 +309,7 @@ export const ReservesCurveChart = ({
 
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) {
-      setError('无法初始化图表上下文');
+      setError('Failed to initialize chart context');
       return;
     }
 
@@ -322,7 +322,7 @@ export const ReservesCurveChart = ({
       
       // 计算恒定乘积 k
       const k = reserve0Adjusted * reserve1Adjusted;
-      console.log("计算的k值:", k);
+      console.log("Calculated k value:", k);
       
       // 设置适合当前储备范围的坐标轴范围
       // 生成范围从当前储备的0.5倍到2倍
@@ -331,7 +331,7 @@ export const ReservesCurveChart = ({
       const yMin = Math.max(0, reserve1Adjusted * 0.5);
       const yMax = reserve1Adjusted * 2;
       
-      console.log("图表范围:", { xMin, xMax, yMin, yMax });
+      console.log("Chart range:", { xMin, xMax, yMin, yMax });
       
       // 生成曲线数据点
       const numPoints = 100; // 曲线上的点数
@@ -363,8 +363,8 @@ export const ReservesCurveChart = ({
       // 更新状态，但不在依赖数组中引用
       setCurvePoints(newCurvePoints);
       
-      console.log("生成的曲线点数:", newCurvePoints.length);
-      console.log("当前点:", currentPointForChart);
+      console.log("Generated curve point count:", newCurvePoints.length);
+      console.log("Current point:", currentPointForChart);
 
       // 创建图表配置
       const chartConfig: ChartConfiguration = {
@@ -372,7 +372,7 @@ export const ReservesCurveChart = ({
         data: {
           datasets: [
             {
-              label: '储备曲线',
+              label: 'Reserve Curve',
               data: pointsForChart.map(p => ({ x: p.x, y: p.y })),
               backgroundColor: 'rgba(75, 192, 192, 0.1)',
               borderColor: 'rgba(75, 192, 192, 1)',
@@ -382,7 +382,7 @@ export const ReservesCurveChart = ({
               fill: false
             },
             {
-              label: '当前位置',
+              label: 'Current Position',
               data: [{ x: currentPointForChart.x, y: currentPointForChart.y }],
               backgroundColor: 'rgba(255, 99, 132, 1)',
               pointRadius: 5,
@@ -401,7 +401,7 @@ export const ReservesCurveChart = ({
               max: xMax,
               title: {
                 display: true,
-                text: `${token0Symbol} 储备量`
+                text: `${token0Symbol} Reserves`
               },
               ticks: {
                 callback: function(tickValue: string | number): string {
@@ -422,7 +422,7 @@ export const ReservesCurveChart = ({
               max: yMax,
               title: {
                 display: true,
-                text: `${token1Symbol} 储备量`
+                text: `${token1Symbol} Reserves`
               },
               ticks: {
                 callback: function(tickValue: string | number): string {
@@ -444,18 +444,18 @@ export const ReservesCurveChart = ({
                   const index = context.dataIndex;
                   const datasetIndex = context.datasetIndex;
                   
-                  if (datasetIndex === 0) { // 储备曲线
+                  if (datasetIndex === 0) { // Reserve curve
                     const point = pointsForChart[index];
                     return [
                       `${token0Symbol}: ${point.x.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
                       `${token1Symbol}: ${point.y.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
-                      `价格: ${point.price.toLocaleString(undefined, {maximumFractionDigits: 6})}`
+                      `Price: ${point.price.toLocaleString(undefined, {maximumFractionDigits: 6})}`
                     ];
-                  } else { // 当前位置
+                  } else { // Current position
                     return [
                       `${token0Symbol}: ${currentPointForChart.x.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
                       `${token1Symbol}: ${currentPointForChart.y.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
-                      `当前价格: ${currentPointForChart.price.toLocaleString(undefined, {maximumFractionDigits: 6})}`
+                      `Current Price: ${currentPointForChart.price.toLocaleString(undefined, {maximumFractionDigits: 6})}`
                     ];
                   }
                 }
@@ -467,10 +467,10 @@ export const ReservesCurveChart = ({
     
       // 创建图表
       chartRef.current = new Chart(ctx, chartConfig);
-      console.log("图表创建完成");
+      console.log("Chart created successfully");
     } catch (err) {
-      console.error('图表初始化失败:', err);
-      setError('图表初始化失败');
+      console.error('Chart initialization failed:', err);
+      setError('Chart initialization failed');
     }
     
     return () => {
@@ -484,18 +484,18 @@ export const ReservesCurveChart = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">储备曲线</h2>
+        <h2 className="text-xl font-semibold">Reserve Curve</h2>
         <div className="flex items-center gap-2">
             {currentPrice > 0 && (
             <div className="text-sm" key={`price-${currentPrice}`}>
-              当前价格: 1 {token0Symbol} = {currentPrice.toFixed(6)} {token1Symbol}
+              Current Price: 1 {token0Symbol} = {currentPrice.toFixed(6)} {token1Symbol}
             </div>
           )}
           <button 
             className="btn btn-sm btn-outline" 
             onClick={handleForceRedraw}
           >
-            刷新图表
+            Refresh Chart
           </button>
         </div>
       </div>

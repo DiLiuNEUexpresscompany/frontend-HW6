@@ -377,7 +377,7 @@ export const LiquidityInterface = ({
         functionName: "approve",
         args: [routerAddress, largeApproval],
       });
-      notification.success("授权请求已发送");
+      notification.success("Approval request sent");
       
       // 监听授权结果
       setTimeout(() => {
@@ -385,7 +385,7 @@ export const LiquidityInterface = ({
       }, 2000);
     } catch (error) {
       console.error("代币0授权失败:", error);
-      notification.error("代币0授权失败");
+      notification.error("Token0 approval failed");
       setDebugInfo(`代币0授权失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
@@ -404,7 +404,7 @@ export const LiquidityInterface = ({
         functionName: "approve",
         args: [routerAddress, largeApproval],
       });
-      notification.success("授权请求已发送");
+      notification.success("Approval request sent");
       
       // 监听授权结果
       setTimeout(() => {
@@ -412,14 +412,14 @@ export const LiquidityInterface = ({
       }, 2000);
     } catch (error) {
       console.error("代币1授权失败:", error);
-      notification.error("代币1授权失败");
+      notification.error("Token1 approval failed");
       setDebugInfo(`代币1授权失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   const handleAddLiquidity = async () => {
     if (!amount0 || !amount1 || !address || !token0Address || !token1Address) {
-      notification.error("请输入有效的数量");
+      notification.error("Please enter valid amounts");
       return;
     }
     
@@ -458,7 +458,7 @@ export const LiquidityInterface = ({
       
       // 检查ETH余额是否足够支付gas
       if (!ethBalanceData || ethBalanceData.value === BigInt(0)) {
-        notification.error("ETH余额不足以支付gas费");
+        notification.error("Insufficient ETH for gas fees");
         return;
       }
 
@@ -473,7 +473,7 @@ export const LiquidityInterface = ({
 
         // 检查ETH余额是否足够
         if (ethBalanceData.value < ethAmount) {
-          notification.error("ETH余额不足");
+          notification.error("Insufficient ETH balance");
           return;
         }
 
@@ -485,7 +485,7 @@ export const LiquidityInterface = ({
           value: ethAmount,
         }, {
           onSuccess: async () => {
-            notification.success("添加流动性成功");
+            notification.success("Successfully added liquidity");
             setAmount0("");
             setAmount1("");
             // 立即刷新所有余额
@@ -503,7 +503,7 @@ export const LiquidityInterface = ({
             if (onLiquidityAdded) onLiquidityAdded();
           },
           onError: (error) => {
-            notification.error("添加流动性失败");
+            notification.error("Failed to add liquidity");
             setDebugInfo(`添加流动性失败: ${error instanceof Error ? error.message : String(error)}`);
           }
         });
@@ -516,7 +516,7 @@ export const LiquidityInterface = ({
           args: [token0Address, token1Address, amount0BigInt, amount1BigInt, amount0Min, amount1Min, address, deadline],
         }, {
           onSuccess: async () => {
-            notification.success("添加流动性成功");
+            notification.success("Successfully added liquidity");
             setAmount0("");
             setAmount1("");
             // 立即刷新所有余额
@@ -534,14 +534,14 @@ export const LiquidityInterface = ({
             if (onLiquidityAdded) onLiquidityAdded();
           },
           onError: (error) => {
-            notification.error("添加流动性失败");
+            notification.error("Failed to add liquidity");
             setDebugInfo(`添加流动性失败: ${error instanceof Error ? error.message : String(error)}`);
           }
         });
       }
     } catch (error) {
       console.error("添加流动性失败:", error);
-      notification.error("添加流动性失败");
+      notification.error("Failed to add liquidity");
       setDebugInfo(`添加流动性失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
@@ -559,7 +559,7 @@ export const LiquidityInterface = ({
         value: wrapAmountBigInt,
       }, {
         onSuccess: async () => {
-          notification.success("ETH 包装成功");
+          notification.success("ETH wrapped successfully");
           setWrapAmount("");
           setShowWrapEthModal(false);
           // 刷新余额
@@ -576,13 +576,13 @@ export const LiquidityInterface = ({
           }, 1000);
         },
         onError: (error) => {
-          notification.error("ETH 包装失败");
+          notification.error("ETH wrapping failed");
           setDebugInfo(`ETH 包装失败: ${error instanceof Error ? error.message : String(error)}`);
         }
       });
     } catch (error) {
       console.error("ETH 包装失败:", error);
-      notification.error("ETH 包装失败");
+      notification.error("ETH wrapping failed");
       setDebugInfo(`ETH 包装失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
@@ -597,13 +597,13 @@ export const LiquidityInterface = ({
 
   return (
     <div className="space-y-4 p-4 bg-base-100 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold">添加流动性</h2>
-      <p className="text-sm text-base-content/70">向交易对添加流动性以获得LP代币并开始交易</p>
+      <h2 className="text-xl font-bold">Add Liquidity</h2>
+      <p className="text-sm text-base-content/70">Add liquidity to receive LP tokens and start trading</p>
       
       {/* 代币0输入 */}
       <div className="form-control">
         <label className="label">
-          <span className="label-text font-medium">代币0数量 ({token0Symbol || '---'})</span>
+          <span className="label-text font-medium">Token0 Amount ({token0Symbol || '---'})</span>
           {isToken0Eth && <span className="badge badge-info">ETH</span>}
         </label>
         <div className="join w-full">
@@ -625,28 +625,28 @@ export const LiquidityInterface = ({
                 setAmount0(formatTokenAmount(usableBalance, 18));
               }}
             >
-              最大
+              Max
             </button>
           )}
         </div>
         {balance0 !== null && isToken0Eth && (
           <label className="label">
             <span className="label-text-alt flex items-center gap-2">
-              <span>ETH余额: {ethBalanceData ? Number(formatEther(ethBalanceData.value)).toFixed(4) : '0.0'} ETH</span>
+              <span>ETH Balance: {ethBalanceData ? Number(formatEther(ethBalanceData.value)).toFixed(4) : '0.0'} ETH</span>
             </span>
           </label>
         )}
         {balance0 !== null && !isToken0Eth && (
           <label className="label">
             <span className="label-text-alt flex items-center gap-1">
-              余额: {formatTokenAmount(balance0, token0Decimals)} {token0Symbol}
+              Balance: {formatTokenAmount(balance0, token0Decimals)} {token0Symbol}
             </span>
           </label>
         )}
         {isInsufficientBalance0 && (
           <label className="label">
             <span className="label-text-alt text-error">
-              {token0Symbol}余额不足
+              Insufficient {token0Symbol} balance
             </span>
           </label>
         )}
@@ -655,7 +655,7 @@ export const LiquidityInterface = ({
       {/* 代币1输入 */}
       <div className="form-control">
         <label className="label">
-          <span className="label-text font-medium">代币1数量 ({token1Symbol || '---'})</span>
+          <span className="label-text font-medium">Token1 Amount ({token1Symbol || '---'})</span>
           {isToken1Eth && <span className="badge badge-info">ETH</span>}
         </label>
         <div className="join w-full">
@@ -677,28 +677,28 @@ export const LiquidityInterface = ({
                 setAmount1(formatTokenAmount(usableBalance, 18));
               }}
             >
-              最大
+              Max
             </button>
           )}
         </div>
         {balance1 !== null && isToken1Eth && (
           <label className="label">
             <span className="label-text-alt flex items-center gap-2">
-              <span>ETH余额: {ethBalanceData ? Number(formatEther(ethBalanceData.value)).toFixed(4) : '0.0'} ETH</span>
+              <span>ETH Balance: {ethBalanceData ? Number(formatEther(ethBalanceData.value)).toFixed(4) : '0.0'} ETH</span>
             </span>
           </label>
         )}
         {balance1 !== null && !isToken1Eth && (
           <label className="label">
             <span className="label-text-alt flex items-center gap-1">
-              余额: {formatTokenAmount(balance1, token1Decimals)} {token1Symbol}
+              Balance: {formatTokenAmount(balance1, token1Decimals)} {token1Symbol}
             </span>
           </label>
         )}
         {isInsufficientBalance1 && (
           <label className="label">
             <span className="label-text-alt text-error">
-              {token1Symbol}余额不足
+              Insufficient {token1Symbol} balance
             </span>
           </label>
         )}
@@ -707,8 +707,8 @@ export const LiquidityInterface = ({
       {/* 滑点设置 */}
       <div className="form-control">
         <label className="label">
-          <span className="label-text font-medium">滑点 (%)</span>
-          <span className="label-text-alt">建议: 1.0%</span>
+          <span className="label-text font-medium">Slippage (%)</span>
+          <span className="label-text-alt">Recommended: 1.0%</span>
         </label>
         <input
           type="number"
@@ -730,7 +730,7 @@ export const LiquidityInterface = ({
             onClick={handleApprove0}
             disabled={isApproving0 || !amount0}
           >
-            {isApproving0 ? "授权中..." : `授权 ${token0Symbol || '代币0'}`}
+            {isApproving0 ? "Approving..." : `Approve ${token0Symbol || 'Token0'}`}
           </button>
         )}
         
@@ -741,7 +741,7 @@ export const LiquidityInterface = ({
             onClick={handleApprove1}
             disabled={isApproving1 || !amount1}
           >
-            {isApproving1 ? "授权中..." : `授权 ${token1Symbol || '代币1'}`}
+            {isApproving1 ? "Approving..." : `Approve ${token1Symbol || 'Token1'}`}
           </button>
         )}
         
@@ -758,10 +758,10 @@ export const LiquidityInterface = ({
               isInsufficientBalance1
             )}
           >
-            {isAddingLiquidity ? "添加流动性中..." : 
-             isInsufficientBalance0 ? `${token0Symbol || '代币0'}余额不足` :
-             isInsufficientBalance1 ? `${token1Symbol || '代币1'}余额不足` :
-             "添加流动性"}
+            {isAddingLiquidity ? "Adding Liquidity..." : 
+             isInsufficientBalance0 ? `Insufficient ${token0Symbol || 'Token0'} Balance` :
+             isInsufficientBalance1 ? `Insufficient ${token1Symbol || 'Token1'} Balance` :
+             "Add Liquidity"}
           </button>
         )}
       </div>
@@ -772,8 +772,8 @@ export const LiquidityInterface = ({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <div>
-          <p>添加流动性后，您将获得LP代币，代表您在流动性池中的份额。</p>
-          <p className="mt-1">该操作可能需要两个交易：一个用于授权，一个用于添加流动性。</p>
+          <p>After adding liquidity, you will receive LP tokens representing your share in the pool.</p>
+          <p className="mt-1">This operation may require two transactions: one for approval and one for adding liquidity.</p>
         </div>
       </div>
       
@@ -784,7 +784,7 @@ export const LiquidityInterface = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div>
-            <p className="font-medium">调试信息</p>
+            <p className="font-medium">Debug Info</p>
             <p className="text-xs break-all">{debugInfo}</p>
           </div>
         </div>
@@ -794,23 +794,23 @@ export const LiquidityInterface = ({
       <div className="collapse collapse-arrow border border-base-300 bg-base-200 mt-4">
         <input type="checkbox" /> 
         <div className="collapse-title text-md font-medium">
-          疑难解答及帮助
+          Troubleshooting & Help
         </div>
         <div className="collapse-content text-sm"> 
-          <p className="mb-2"><strong>添加流动性失败的常见原因：</strong></p>
+          <p className="mb-2"><strong>Common reasons for liquidity addition failure:</strong></p>
           <ul className="list-disc list-inside space-y-1">
-            <li>ETH余额不足以支付gas费</li>
-            <li>滑点设置过低</li>
-            <li>代币授权失败</li>
-            <li>代币合约地址不正确</li>
+            <li>Insufficient ETH for gas fees</li>
+            <li>Slippage too low</li>
+            <li>Token approval failed</li>
+            <li>Incorrect token contract address</li>
           </ul>
           
-          <p className="mt-3 mb-2"><strong>添加测试代币流程：</strong></p>
+          <p className="mt-3 mb-2"><strong>Test token addition process:</strong></p>
           <ol className="list-decimal list-inside space-y-1">
-            <li>部署测试代币合约</li>
-            <li>使用部署账户铸造代币</li>
-            <li>为交易代币授权Router合约</li>
-            <li>添加流动性（先添加充足的流动性才能进行交易）</li>
+            <li>Deploy test token contract</li>
+            <li>Mint tokens using deployment account</li>
+            <li>Approve Router contract for token trading</li>
+            <li>Add liquidity (sufficient liquidity needed before trading)</li>
           </ol>
         </div>
       </div>
@@ -819,11 +819,11 @@ export const LiquidityInterface = ({
       {showWrapEthModal && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg">包装 ETH 为 WETH</h3>
-            <p className="py-4">在添加流动性之前，需要先将 ETH 包装成 WETH。</p>
+            <h3 className="font-bold text-lg">Wrap ETH to WETH</h3>
+            <p className="py-4">You need to wrap ETH to WETH before adding liquidity.</p>
             <div className="form-control">
               <label className="label">
-                <span className="label-text">包装数量</span>
+                <span className="label-text">Wrap Amount</span>
               </label>
               <div className="join">
                 <input
@@ -831,7 +831,7 @@ export const LiquidityInterface = ({
                   className="input input-bordered join-item w-full"
                   value={wrapAmount}
                   onChange={(e) => setWrapAmount(e.target.value)}
-                  placeholder="输入要包装的 ETH 数量"
+                  placeholder="Enter amount of ETH to wrap"
                   step="any"
                 />
                 <button 
@@ -844,13 +844,13 @@ export const LiquidityInterface = ({
                     }
                   }}
                 >
-                  最大
+                  Max
                 </button>
               </div>
             </div>
             <div className="modal-action">
-              <button className="btn" onClick={() => setShowWrapEthModal(false)}>取消</button>
-              <button className="btn btn-primary" onClick={handleWrapEth}>确认包装</button>
+              <button className="btn" onClick={() => setShowWrapEthModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleWrapEth}>Confirm Wrap</button>
             </div>
           </div>
           <div className="modal-backdrop" onClick={() => setShowWrapEthModal(false)}></div>

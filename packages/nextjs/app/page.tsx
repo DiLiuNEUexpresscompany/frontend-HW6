@@ -8,6 +8,7 @@ import { PoolSelector } from "~~/components/uniswap/PoolSelector";
 import { SwapInterface } from "~~/components/uniswap/SwapInterface";
 import { LiquidityInterface } from "~~/components/uniswap/LiquidityInterface";
 import { useReadContract } from "wagmi";
+import SwapPriceDistribution from "~~/components/uniswap/SwapPriceDistribution";
 
 export default function Home() {
   const [selectedPool, setSelectedPool] = useState<Address>();
@@ -82,6 +83,11 @@ export default function Home() {
     refetchReserves();
   };
 
+  // 刷新函数
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   if (!routerInfo?.address || !factoryInfo?.address) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-base-200 to-base-300 py-8">
@@ -91,8 +97,8 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div>
-              <h3 className="font-bold">注意!</h3>
-              <div className="text-sm">Router 或 Factory 合约尚未部署，请先部署合约。</div>
+              <h3 className="font-bold">Notice!</h3>
+              <div className="text-sm">Router or Factory contract not deployed. Please deploy contracts first.</div>
             </div>
           </div>
         </div>
@@ -108,21 +114,20 @@ export default function Home() {
             Uniswap V2
           </h1>
           <p className="text-base-content/60">
-            去中心化交易所 - 交易、提供流动性、赚取收益
+            Decentralized Exchange - Trade, Provide Liquidity, Earn Yields
           </p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* 左侧面板 */}
           <div className="lg:col-span-3 space-y-6">
-            {/* 交易对选择器 */}
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
               <div className="card-body">
                 <h2 className="card-title text-2xl font-bold mb-6 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  选择交易对
+                  Select Pool
                 </h2>
                 <PoolSelector 
                   onPoolSelect={handlePoolSelect} 
@@ -133,22 +138,20 @@ export default function Home() {
 
             {selectedPool && (
               <>
-                {/* 添加流动性界面 - 已调整到前面 */}
                 <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
                   <div className="card-body">
                     <h2 className="card-title text-2xl font-bold mb-2 flex items-center gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      添加流动性
+                      Add Liquidity
                     </h2>
-                    {/* 添加流动性提示信息 */}
                     {!hasLiquidity && (
                       <div className="alert alert-info mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>在进行交易前，需要先添加足够的流动性</span>
+                        <span>Sufficient liquidity must be added before trading</span>
                       </div>
                     )}
                     <LiquidityInterface 
@@ -160,24 +163,22 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 代币交换界面 - 已调整到后面 */}
                 <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
                   <div className="card-body">
                     <h2 className="card-title text-2xl font-bold mb-2 flex items-center gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                       </svg>
-                      代币交换
+                      Swap Tokens
                     </h2>
-                    {/* 流动性不足警告 */}
                     {!hasLiquidity && (
                       <div className="alert alert-warning mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
-                          <h3 className="font-bold">注意!</h3>
-                          <div className="text-sm">该交易对目前没有流动性，交易可能会失败或价格影响极大。请先添加流动性。</div>
+                          <h3 className="font-bold">Warning!</h3>
+                          <div className="text-sm">This pool has no liquidity. Trades may fail or have extreme price impact. Please add liquidity first.</div>
                         </div>
                       </div>
                     )}
@@ -195,46 +196,65 @@ export default function Home() {
           <div className="lg:col-span-2 space-y-6">
             {selectedPool ? (
               <>
-                {/* 池状态信息卡片 */}
                 <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
                   <div className="card-body">
-                    <h2 className="card-title text-xl font-bold mb-2">池状态</h2>
+                    <h2 className="card-title text-xl font-bold mb-2">Pool Status</h2>
                     {hasLiquidity ? (
                       <div className="alert alert-success">
                         <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>池中有流动性，可以进行交易</span>
+                        <span>Pool has liquidity, ready for trading</span>
                       </div>
                     ) : (
                       <div className="alert alert-warning">
                         <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
-                        <span>池中没有流动性，需要先添加</span>
+                        <span>Pool has no liquidity, needs to be added</span>
                       </div>
                     )}
                     <div className="text-sm opacity-70 mt-2">
-                      池地址: <span className="font-mono text-xs break-all">{selectedPool}</span>
+                      Pool Address: <span className="font-mono text-xs break-all">{selectedPool}</span>
                     </div>
                   </div>
                 </div>
                 
-               {/* 储备曲线图 */}
-              <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+               <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
                 <div className="card-body">
                   <h2 className="card-title text-xl font-bold mb-4 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                     </svg>
-                    储备曲线
+                    Reserve Curve
                   </h2>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-3xl font-bold">Reserve Curve</h2>
+                    <button 
+                      className="btn btn-sm btn-outline"
+                      onClick={handleRefresh}
+                    >
+                      Refresh Data
+                    </button>
+                  </div>
                   {reservesData ? (
-                    <ReservesCurveChart 
-                      poolAddress={selectedPool} 
-                      refreshTrigger={refreshTrigger}
-                      key={`pool-${selectedPool}-refresh-${refreshTrigger}`} // 添加key强制重新渲染
-                    />
+                    <div className="flex flex-col gap-y-6 lg:gap-y-8">
+                      <h2 className="text-3xl font-bold text-center">Reserve Curve</h2>
+                      <ReservesCurveChart 
+                        poolAddress={selectedPool} 
+                        refreshTrigger={refreshTrigger}
+                        key={`pool-${selectedPool}-refresh-${refreshTrigger}`} 
+                      />
+                      
+                      {/* Price Distribution Chart */}
+                      <div className="mt-4">
+                        <SwapPriceDistribution 
+                          poolAddress={selectedPool}
+                          refreshTrigger={refreshTrigger}
+                          key={`pool-${selectedPool}-price-${refreshTrigger}`}
+                        />
+                      </div>
+                    </div>
                   ) : (
                     <div className="flex justify-center items-center h-[400px]">
                       <span className="loading loading-spinner loading-lg"></span>
@@ -243,22 +263,21 @@ export default function Home() {
                 </div>
               </div>
                 
-                {/* 操作指南 */}
                 <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
                   <div className="card-body">
-                    <h2 className="card-title text-xl font-bold mb-2">操作指南</h2>
+                    <h2 className="card-title text-xl font-bold mb-2">User Guide</h2>
                     <ol className="list-decimal list-inside space-y-2 text-sm">
                       <li>
-                        <span className="font-medium">选择交易对</span>
-                        <p className="text-xs ml-5 text-base-content/70">从左侧面板选择或创建交易对</p>
+                        <span className="font-medium">Select Pool</span>
+                        <p className="text-xs ml-5 text-base-content/70">Choose or create a pool from the left panel</p>
                       </li>
                       <li>
-                        <span className="font-medium text-primary">添加流动性</span>
-                        <p className="text-xs ml-5 text-base-content/70">向池中添加足量的流动性才能进行交易</p>
+                        <span className="font-medium text-primary">Add Liquidity</span>
+                        <p className="text-xs ml-5 text-base-content/70">Add sufficient liquidity to enable trading</p>
                       </li>
                       <li>
-                        <span className="font-medium">进行交易</span>
-                        <p className="text-xs ml-5 text-base-content/70">有足够流动性后，可以进行代币交换</p>
+                        <span className="font-medium">Start Trading</span>
+                        <p className="text-xs ml-5 text-base-content/70">Once there's enough liquidity, you can swap tokens</p>
                       </li>
                     </ol>
                   </div>
@@ -270,9 +289,9 @@ export default function Home() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <h3 className="text-lg font-semibold mt-4">请选择交易对</h3>
+                  <h3 className="text-lg font-semibold mt-4">Please Select a Pool</h3>
                   <p className="text-base-content/60 mt-2">
-                    选择交易对后将显示更多功能
+                    More features will be shown after selecting a pool
                   </p>
                 </div>
               </div>

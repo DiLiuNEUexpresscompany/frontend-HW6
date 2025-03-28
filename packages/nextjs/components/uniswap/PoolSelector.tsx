@@ -41,12 +41,12 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
 
   const handleCreatePair = async () => {
     if (!token0Address || !token1Address) {
-      setError("请输入两个代币地址");
+      setError("Please enter both token addresses");
       return;
     }
     
     if (token0Address === token1Address) {
-      setError("两个代币地址不能相同");
+      setError("Token addresses cannot be the same");
       return;
     }
 
@@ -68,8 +68,8 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
         },
       });
     } catch (err) {
-      console.error("创建交易对失败:", err);
-      setError("创建交易对失败，请检查代币地址是否正确");
+      console.error("Failed to create pair:", err);
+      setError("Failed to create pair. Please check token addresses");
     }
   };
 
@@ -107,8 +107,8 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
       setPairs(pairsWithSymbols);
       
     } catch (err) {
-      console.error("获取交易对失败:", err);
-      setError("获取交易对列表失败");
+      console.error("Failed to fetch pairs:", err);
+      setError("Failed to fetch pair list");
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +157,6 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
       );
     }
     
-    // 如果已有地址且在代币列表中，显示代币信息
     const tokenInfo = value ? getTokenInfo(value) : undefined;
     
     return (
@@ -171,10 +170,9 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
           <AddressInput
             value={value || ""}
             onChange={onChange}
-            placeholder={`输入${label}的合约地址`}
+            placeholder={`Enter ${label} contract address`}
           />
           
-          {/* 如果有代币信息，显示代币符号 */}
           {tokenInfo && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center bg-base-300 px-2 py-1 rounded">
               {tokenInfo.logoURI && (
@@ -188,9 +186,8 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
         {/* 常用代币快速选择 */}
         <div className="flex flex-wrap gap-1 mt-2">
           {Object.values(COMMON_TOKENS)
-            // 如果当前标签是"代币1"且useEth=true，或者是已经选中的代币，不显示
             .filter(token => 
-              !((label === "代币1" && useEth && token.symbol === "ETH") || 
+              !((label === "Token1" && useEth && token.symbol === "ETH") || 
                 (value && token.address.toLowerCase() === value.toLowerCase()))
             )
             .map(token => (
@@ -210,11 +207,11 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
 
   const renderCreatePairInterface = () => (
     <div className="space-y-4 p-4 bg-base-200 rounded-lg">
-      <h3 className="text-lg font-semibold">创建新交易对</h3>
+      <h3 className="text-lg font-semibold">Create New Pair</h3>
       
       <div className="form-control">
         <label className="label cursor-pointer">
-          <span className="label-text">使用ETH作为交易对</span> 
+          <span className="label-text">Use ETH as pair</span> 
           <input 
             type="checkbox" 
             className="toggle toggle-primary" 
@@ -224,15 +221,15 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
         </label>
       </div>
       
-      {renderTokenInput(token0Address, setToken0Address, "代币1", useEth)}
-      {renderTokenInput(token1Address, setToken1Address, "代币2")}
+      {renderTokenInput(token0Address, setToken0Address, "Token1", useEth)}
+      {renderTokenInput(token1Address, setToken1Address, "Token2")}
       
       <button 
         className={`btn btn-primary w-full ${isCreating || isLoading ? "loading" : ""}`}
         onClick={handleCreatePair}
         disabled={isCreating || isLoading || (!token0Address && !useEth) || !token1Address}
       >
-        {isCreating ? "创建中..." : "创建交易对"}
+        {isCreating ? "Creating..." : "Create Pair"}
       </button>
     </div>
   );
@@ -253,12 +250,12 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <div>
-            <h3 className="font-bold">提示</h3>
+            <h3 className="font-bold">Notice</h3>
             <div className="text-sm">
-              暂无交易对，请创建新的交易对
+              No pairs available. Please create a new pair.
             </div>
             <div className="text-xs mt-1">
-              工厂合约地址: {factoryAddress}
+              Factory Address: {factoryAddress}
             </div>
           </div>
         </div>
@@ -267,13 +264,12 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
     
     return (
       <>
-        <div className="divider">已有交易对</div>
+        <div className="divider">Existing Pairs</div>
         <div className="grid grid-cols-1 gap-4">
           {pairs.map((pair, index) => {
-            // 如果有token信息，显示代币符号，否则显示索引号
             const pairDisplay = pair.token0Symbol && pair.token1Symbol
               ? `${pair.token0Symbol}/${pair.token1Symbol}`
-              : `交易对 #${index + 1}`;
+              : `Pair #${index + 1}`;
               
             return (
               <button
@@ -301,10 +297,10 @@ export const PoolSelector = ({ factoryAddress, onPoolSelect }: PoolSelectorProps
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h3 className="font-bold">错误</h3>
+            <h3 className="font-bold">Error</h3>
             <div className="text-sm">{error}</div>
             <div className="text-xs mt-1">
-              工厂合约地址: {factoryAddress}
+              Factory Address: {factoryAddress}
             </div>
           </div>
         </div>

@@ -372,16 +372,16 @@ export const SwapInterface = ({
         functionName: "approve",
         args: [routerAddress, largeApproval],
       });
-      notification.success("授权请求已发送");
+      notification.success("Approval request sent");
       
       // 监听授权结果
       setTimeout(() => {
         refetchAllowance();
       }, 2000);
     } catch (error) {
-      console.error("授权失败:", error);
-      notification.error("授权失败");
-      setDebugInfo(`授权失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("Failed to approve:", error);
+      notification.error("Approval failed");
+      setDebugInfo(`Transaction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -390,7 +390,7 @@ export const SwapInterface = ({
    */
   const handleSwap = async () => {
     if (!amount || !reserves || !address || !inputToken || !outputToken) {
-      notification.error("请输入有效数量");
+      notification.error("Please enter valid amounts");
       return;
     }
     
@@ -409,13 +409,13 @@ export const SwapInterface = ({
       // 检查ETH余额是否足够支付gas和交易金额
       if (isInputTokenEth) {
         if (!ethBalanceData || ethBalanceData.value < amountIn) {
-          notification.error("ETH余额不足");
+          notification.error("Insufficient ETH balance");
           return;
         }
         // 确保留有足够的gas费
         const gasReserve = parseTokenAmount("0.01", 18); // 预留0.01 ETH作为gas费
         if (ethBalanceData.value < amountIn + gasReserve) {
-          notification.error("请预留足够的ETH作为gas费");
+          notification.error("Please reserve enough ETH for gas");
           return;
         }
       }
@@ -453,7 +453,7 @@ export const SwapInterface = ({
           value: amountIn,
         }, {
           onSuccess: async () => {
-            notification.success("交易成功");
+            notification.success("Transaction successful");
             setAmount("");
             // 立即刷新所有余额
             await Promise.all([
@@ -470,8 +470,8 @@ export const SwapInterface = ({
             if (onSwapCompleted) onSwapCompleted();
           },
           onError: (error) => {
-            notification.error("交易失败");
-            setDebugInfo(`交易失败: ${error instanceof Error ? error.message : String(error)}`);
+            notification.error("Transaction failed");
+            setDebugInfo(`Transaction failed: ${error instanceof Error ? error.message : String(error)}`);
           }
         });
       } else if (isOutputTokenEth) {
@@ -483,7 +483,7 @@ export const SwapInterface = ({
           args: [amountIn, amountOutMin, path, address, deadline],
         }, {
           onSuccess: async () => {
-            notification.success("交易成功");
+            notification.success("Transaction successful");
             setAmount("");
             // 立即刷新所有余额
             await Promise.all([
@@ -500,8 +500,8 @@ export const SwapInterface = ({
             if (onSwapCompleted) onSwapCompleted();
           },
           onError: (error) => {
-            notification.error("交易失败");
-            setDebugInfo(`交易失败: ${error instanceof Error ? error.message : String(error)}`);
+            notification.error("Transaction failed");
+            setDebugInfo(`Transaction failed: ${error instanceof Error ? error.message : String(error)}`);
           }
         });
       } else {
@@ -513,7 +513,7 @@ export const SwapInterface = ({
           args: [amountIn, amountOutMin, path, address, deadline],
         }, {
           onSuccess: async () => {
-            notification.success("交易成功");
+            notification.success("Transaction successful");
             setAmount("");
             // 立即刷新所有余额
             await Promise.all([
@@ -530,15 +530,15 @@ export const SwapInterface = ({
             if (onSwapCompleted) onSwapCompleted();
           },
           onError: (error) => {
-            notification.error("交易失败");
-            setDebugInfo(`交易失败: ${error instanceof Error ? error.message : String(error)}`);
+            notification.error("Transaction failed");
+            setDebugInfo(`Transaction failed: ${error instanceof Error ? error.message : String(error)}`);
           }
         });
       }
     } catch (error) {
-      console.error("交易失败:", error);
-      notification.error("交易失败");
-      setDebugInfo(`交易失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("Transaction failed:", error);
+      notification.error("Transaction failed");
+      setDebugInfo(`Transaction failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -558,20 +558,20 @@ export const SwapInterface = ({
 
   return (
     <div className="space-y-4 p-4 bg-base-100 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold">代币交换</h2>
-      <p className="text-sm text-base-content/70">通过流动性池交换代币</p>
+      <h2 className="text-xl font-bold">Token Swap</h2>
+      <p className="text-sm text-base-content/70">Swap tokens through liquidity pool</p>
       
       <div className="space-y-4">
         {/* 输入代币数量 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-medium">从 ({inputTokenSymbol || '---'})</span>
+            <span className="label-text font-medium">From ({inputTokenSymbol || '---'})</span>
             {isInputTokenEth && <span className="badge badge-info">ETH</span>}
             {priceImpact !== null && (
               <span className={`label-text-alt ${
                 priceImpact > 15 ? "text-error" : priceImpact > 5 ? "text-warning" : "text-success"
               }`}>
-                价格影响: {priceImpact.toFixed(2)}%
+                Price Impact: {priceImpact.toFixed(2)}%
               </span>
             )}
           </label>
@@ -589,7 +589,6 @@ export const SwapInterface = ({
                 className="btn join-item"
                 onClick={() => {
                   if (ethBalanceData) {
-                    // 保留0.01 ETH作为gas费
                     const gasReserve = parseTokenAmount("0.01", 18);
                     const usableBalance = ethBalanceData.value > gasReserve 
                       ? ethBalanceData.value - gasReserve 
@@ -598,14 +597,14 @@ export const SwapInterface = ({
                   }
                 }}
               >
-                最大
+                Max
               </button>
             )}
           </div>
           {inputBalance !== null && (
             <label className="label">
               <span className="label-text-alt flex items-center gap-2">
-                <span>余额: {isInputTokenEth 
+                <span>Balance: {isInputTokenEth 
                   ? `${ethBalanceData ? Number(formatEther(ethBalanceData.value)).toFixed(4) : '0.0'} ETH`
                   : `${formatTokenAmount(inputBalance, inputTokenDecimals)} ${inputTokenSymbol}`
                 }</span>
@@ -614,7 +613,6 @@ export const SwapInterface = ({
                     className="btn btn-xs"
                     onClick={() => {
                       if (ethBalanceData) {
-                        // 保留0.01 ETH作为gas费
                         const gasReserve = parseTokenAmount("0.01", 18);
                         const usableBalance = ethBalanceData.value > gasReserve 
                           ? ethBalanceData.value - gasReserve 
@@ -623,7 +621,7 @@ export const SwapInterface = ({
                       }
                     }}
                   >
-                    最大
+                    Max
                   </button>
                 )}
               </span>
@@ -632,7 +630,7 @@ export const SwapInterface = ({
           {isInsufficientBalance && (
             <label className="label">
               <span className="label-text-alt text-error">
-                {inputTokenSymbol}余额不足
+                Insufficient {inputTokenSymbol} balance
               </span>
             </label>
           )}
@@ -659,7 +657,7 @@ export const SwapInterface = ({
         {/* 输出代币数量 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-medium">到 ({outputTokenSymbol || '---'})</span>
+            <span className="label-text font-medium">To ({outputTokenSymbol || '---'})</span>
             {isOutputTokenEth && <span className="badge badge-info">ETH</span>}
           </label>
           <div className="join w-full">
@@ -674,7 +672,7 @@ export const SwapInterface = ({
           {outputBalance !== null && (
             <label className="label">
               <span className="label-text-alt flex items-center gap-2">
-                <span>余额: {isOutputTokenEth 
+                <span>Balance: {isOutputTokenEth 
                   ? (ethBalanceData ? Number(formatEther(ethBalanceData.value)).toFixed(4) : '0.0') 
                   : formatTokenAmount(outputBalance, outputTokenDecimals)} {outputTokenSymbol}</span>
               </span>
@@ -685,8 +683,8 @@ export const SwapInterface = ({
         {/* 滑点设置 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-medium">滑点 (%)</span>
-            <span className="label-text-alt">建议: 0.5%</span>
+            <span className="label-text font-medium">Slippage (%)</span>
+            <span className="label-text-alt">Recommended: 0.5%</span>
           </label>
           <input
             type="number"
@@ -717,8 +715,8 @@ export const SwapInterface = ({
             </svg>
             <div>
               {priceImpact > 15
-                ? `极高价格影响 (${priceImpact.toFixed(2)}%)！您可能会损失大部分资金`
-                : `高价格影响 (${priceImpact.toFixed(2)}%)，请谨慎交易`}
+                ? `Extreme price impact (${priceImpact.toFixed(2)}%)! You may lose most of your funds`
+                : `High price impact (${priceImpact.toFixed(2)}%), trade carefully`}
             </div>
           </div>
         )}
@@ -735,25 +733,23 @@ export const SwapInterface = ({
                   setPriceImpactThreshold(e.target.checked ? 100 : 15);
                 }}
               />
-              <span className="label-text ml-2">我了解风险并仍然想要继续</span>
+              <span className="label-text ml-2">I understand the risks and want to proceed</span>
             </label>
           </div>
         )}
         
         {/* 按钮部分 */}
         <div className="space-y-2">
-          {/* 授权按钮 */}
           {needsApproval && (
             <button 
               className={`btn btn-primary w-full${isApproving ? " loading" : ""}`}
               onClick={handleApprove}
               disabled={isApproving || !amount}
             >
-              {isApproving ? "授权中..." : `授权 ${inputTokenSymbol || '代币'}`}
+              {isApproving ? "Approving..." : `Approve ${inputTokenSymbol || 'Token'}`}
             </button>
           )}
           
-          {/* 交换按钮 */}
           {!needsApproval && (
             <button 
               className={`btn btn-primary w-full${isSwapping ? " loading" : ""}`}
@@ -765,10 +761,10 @@ export const SwapInterface = ({
                 isHighPriceImpact
               )}
             >
-              {isSwapping ? "交换中..." : 
-              isInsufficientBalance ? `${inputTokenSymbol || '代币'}余额不足` :
-              isHighPriceImpact ? "价格影响过高" :
-              "交换"}
+              {isSwapping ? "Swapping..." : 
+              isInsufficientBalance ? `Insufficient ${inputTokenSymbol || 'Token'} Balance` :
+              isHighPriceImpact ? "Price Impact Too High" :
+              "Swap"}
             </button>
           )}
         </div>
@@ -779,8 +775,8 @@ export const SwapInterface = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <div>
-            <p>交换操作会通过流动性池将一种代币兑换为另一种代币。</p>
-            <p className="mt-1">该操作可能需要两个交易：一个用于授权，一个用于交换。</p>
+            <p>Swap operation exchanges one token for another through the liquidity pool.</p>
+            <p className="mt-1">This operation may require two transactions: one for approval and one for swapping.</p>
           </div>
         </div>
         
@@ -791,7 +787,7 @@ export const SwapInterface = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div>
-              <p className="font-medium">调试信息</p>
+              <p className="font-medium">Debug Info</p>
               <p className="text-xs break-all">{debugInfo}</p>
             </div>
           </div>
@@ -801,23 +797,23 @@ export const SwapInterface = ({
         <div className="collapse collapse-arrow border border-base-300 bg-base-200 mt-2">
           <input type="checkbox" /> 
           <div className="collapse-title text-md font-medium">
-            疑难解答及帮助
+            Troubleshooting & Help
           </div>
           <div className="collapse-content text-sm"> 
-            <p className="mb-2"><strong>交易失败的常见原因：</strong></p>
+            <p className="mb-2"><strong>Common reasons for transaction failure:</strong></p>
             <ul className="list-disc list-inside space-y-1">
-              <li>ETH余额不足以支付gas费</li>
-              <li>滑点设置过低，交易在确认前价格变动超过滑点</li>
-              <li>代币授权失败</li>
-              <li>流动性不足</li>
-              <li>高价格影响可能导致获得的代币量极少</li>
+              <li>Insufficient ETH for gas fees</li>
+              <li>Slippage too low, price moved before confirmation</li>
+              <li>Token approval failed</li>
+              <li>Insufficient liquidity</li>
+              <li>High price impact may result in minimal token output</li>
             </ul>
             
-            <p className="mt-3 mb-2"><strong>减少价格影响的方法：</strong></p>
+            <p className="mt-3 mb-2"><strong>Ways to reduce price impact:</strong></p>
             <ol className="list-decimal list-inside space-y-1">
-              <li>减少交易金额，分多次完成大额交易</li>
-              <li>等待流动性增加</li>
-              <li>尝试其他交易路径或交易平台</li>
+              <li>Reduce transaction amount, split large trades</li>
+              <li>Wait for increased liquidity</li>
+              <li>Try alternative trading paths or platforms</li>
             </ol>
           </div>
         </div>
