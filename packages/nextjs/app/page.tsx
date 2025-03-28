@@ -277,7 +277,7 @@ export default function Home() {
                       </li>
                       <li>
                         <span className="font-medium">Start Trading</span>
-                        <p className="text-xs ml-5 text-base-content/70">Once there's enough liquidity, you can swap tokens</p>
+                        <p className="text-xs ml-5 text-base-content/70">Once there&apos;s enough liquidity, you can swap tokens</p>
                       </li>
                     </ol>
                   </div>
