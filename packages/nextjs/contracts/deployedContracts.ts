@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   11155111: {
     WETH: {
-      address: "0x764ac516ec320a310375e69f59180355c69e313f",
+      address: "0x988b124648e0c83d2c2e60e91df8f290a76fd0ae",
       abi: [
         {
           type: "receive",
@@ -299,7 +299,7 @@ const deployedContracts = {
       deploymentScript: "Deploy.s.sol",
     },
     TestUSDC: {
-      address: "0x8682d6f065e716d4c78b7bb5701e6e5859d050c5",
+      address: "0xa8d1cb779f8195a7073a28dd08ec250f2317d426",
       abi: [
         {
           type: "constructor",
@@ -552,7 +552,7 @@ const deployedContracts = {
       deploymentScript: "Deploy.s.sol",
     },
     UniswapV2Factory: {
-      address: "0x8a2144b5baf0b2c8807de8e0fa82156cd0dea8dc",
+      address: "0x0cfe49d5bff51769914eb944a6dfd5459f9b5452",
       abi: [
         {
           type: "constructor",
@@ -734,7 +734,7 @@ const deployedContracts = {
       deploymentScript: "Deploy.s.sol",
     },
     UniswapV2Router02: {
-      address: "0x5593fe348d36d4b10d7e819256bf771d159cceb7",
+      address: "0x5cd61b7b776d27488dd8b2607918839da73ac438",
       abi: [
         {
           type: "constructor",

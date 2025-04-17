@@ -19,10 +19,10 @@ export const tenderlyVirtualSepolia = defineChain({
   name: 'Tenderly Virtual Sepolia',
   rpcUrls: {
     default: {
-      http: ['https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25'],
+      http: ['https://virtual.sepolia.rpc.tenderly.co/4d5882f6-2271-4f75-aacd-38c14a18feaa'],
     },
     public: {
-      http: ['https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25'],
+      http: ['https://virtual.sepolia.rpc.tenderly.co/4d5882f6-2271-4f75-aacd-38c14a18feaa'],
     },
   },
 });
@@ -40,7 +40,7 @@ const scaffoldConfig = {
   // 更新 rpcOverrides 使用我们的 Tenderly RPC URL
   rpcOverrides: {
     // 确保使用与 tenderlyVirtualSepolia 相同的 id
-    [chains.sepolia.id]: "https://virtual.sepolia.rpc.tenderly.co/a6122906-66f1-4c1a-b4e7-92fecdcd0e25",
+    [chains.sepolia.id]: "https://virtual.sepolia.rpc.tenderly.co/4d5882f6-2271-4f75-aacd-38c14a18feaa",
   },
 
   // 保持 WalletConnect 项目 ID 不变

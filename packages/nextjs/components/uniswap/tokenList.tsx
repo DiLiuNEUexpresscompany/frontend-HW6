@@ -22,7 +22,7 @@ export const COMMON_TOKENS: { [key: string]: TokenInfo } = {
   },
   // 包装后的 ETH
   WETH: {
-    address: "0x764ac516ec320a310375e69f59180355c69e313f", 
+    address: "0x988b124648e0c83d2c2e60e91df8f290a76fd0ae", 
     symbol: "WETH",
     name: "Wrapped Ethereum",
     decimals: 18,
@@ -30,7 +30,7 @@ export const COMMON_TOKENS: { [key: string]: TokenInfo } = {
   },
   // 其他常见代币
   testUSDC: {
-    address: "0x8682d6f065e716d4c78b7bb5701e6e5859d050c5",
+    address: "0xa8d1cb779f8195a7073a28dd08ec250f2317d426",
     symbol: "testUSDC",
     name: "testUSDC Coin",
     decimals: 6,
@@ -42,13 +42,6 @@ export const COMMON_TOKENS: { [key: string]: TokenInfo } = {
     name: "Tether USD",
     decimals: 6,
     logoURI: "https://cryptologos.cc/logos/tether-usdt-logo.png"
-  },
-  DAI: {
-    address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-    symbol: "DAI",
-    name: "Dai Stablecoin",
-    decimals: 18,
-    logoURI: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.png"
   },
   // 可以添加更多代币...
 };

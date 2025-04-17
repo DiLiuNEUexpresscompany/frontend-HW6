@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import { type Address, formatEther } from "viem";
 import { useReadContract, useWriteContract } from "wagmi";
@@ -102,14 +102,24 @@ interface LiquidityInterfaceProps {
   routerAddress?: Address;
   wethAddress?: Address; // 允许传递WETH地址以适应不同网络
   onLiquidityAdded?: () => void; // 添加流动性成功后的回调
+  autoExecute?: boolean; // 是否自动执行
+  initialToken1Amount?: string; // 初始代币1数量
+  initialToken2Amount?: string; // 初始代币2数量
+  initialToken1Symbol?: string; // 初始代币1符号
+  initialToken2Symbol?: string; // 初始代币2符号
 }
 
 export const LiquidityInterface = ({ 
   poolAddress, 
   routerAddress = ROUTER_ADDRESS as Address,
   // 默认使用部署的WETH地址，或者在本地网络使用常见的WETH地址
-  wethAddress = "0x764ac516ec320a310375e69f59180355c69e313f" as Address,
-  onLiquidityAdded
+  wethAddress = "0x988b124648e0c83d2c2e60e91df8f290a76fd0ae" as Address,
+  onLiquidityAdded,
+  autoExecute = false,
+  initialToken1Amount,
+  initialToken2Amount,
+  initialToken1Symbol,
+  initialToken2Symbol
 }: LiquidityInterfaceProps) => {
   const [amount0, setAmount0] = useState("");
   const [amount1, setAmount1] = useState("");
@@ -130,6 +140,7 @@ export const LiquidityInterface = ({
   const [wethBalance1, setWethBalance1] = useState<bigint | null>(null);
   const [showWrapEthModal, setShowWrapEthModal] = useState(false);
   const [wrapAmount, setWrapAmount] = useState("");
+  const executedRef = useRef(false);
 
   // 使用useWatchBalance获取ETH余额
   const {
@@ -151,6 +162,25 @@ export const LiquidityInterface = ({
     address: poolAddress,
     abi: PAIR_ABI,
     functionName: "token1",
+  });
+
+  // 读取reserves数据
+  const { data: reserves } = useReadContract({
+    address: poolAddress as `0x${string}`,
+    abi: [
+      {
+        name: "getReserves",
+        type: "function",
+        stateMutability: "view",
+        inputs: [],
+        outputs: [
+          { name: "reserve0", type: "uint112" },
+          { name: "reserve1", type: "uint112" },
+          { name: "blockTimestampLast", type: "uint32" }
+        ]
+      }
+    ],
+    functionName: "getReserves",
   });
 
   // 读取代币信息
@@ -332,6 +362,54 @@ export const LiquidityInterface = ({
     }
     
   }, [ethBalanceData, token0Balance, token1Balance, token0Allowance, token1Allowance, amount0, amount1, token0Decimals, token1Decimals, isToken0Eth, isToken1Eth]);
+
+  // 自动执行相关的useEffect
+  useEffect(() => {
+    if (autoExecute && !executedRef.current &&initialToken1Amount && initialToken2Amount) {
+      console.log("Auto-execute liquidity addition enabled");
+      console.log("Initial amounts:", { initialToken1Amount, initialToken2Amount });
+      
+      const setupAndExecuteLiquidity = async () => {
+        try {
+          // 设置初始值
+          setAmount0(initialToken1Amount);
+          setAmount1(initialToken2Amount);
+          
+          // 等待代币信息加载
+          if (!token0Address || !token1Address || !reserves) {
+            console.log("Waiting for token info to load...");
+            return;
+          }
+
+          console.log("Token info loaded, checking approvals...");
+          
+          // 检查是否需要授权
+          if (needsApproval0) {
+            console.log("Approval needed for token0");
+            await handleApprove0();
+          }
+          
+          if (needsApproval1) {
+            console.log("Approval needed for token1");
+            await handleApprove1();
+          }
+
+          console.log("Executing add liquidity...");
+          // 执行添加流动性
+          await handleAddLiquidity();
+          
+          // 调用完成回调
+          onLiquidityAdded?.();
+        } catch (error) {
+          console.error("Auto-execute liquidity addition failed:", error);
+          notification.error("Failed to auto-execute liquidity addition");
+        }
+      };
+
+      setupAndExecuteLiquidity();
+      executedRef.current = true;  
+    }
+  }, [autoExecute, initialToken1Amount, initialToken2Amount]);
 
   // 更新WETH余额
   useEffect(() => {

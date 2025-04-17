@@ -89,20 +89,28 @@ const PAIR_ABI = [
   },
 ] as const;
 
-const WETH_ADDRESS = "0x764ac516ec320a310375e69f59180355c69e313f"; // 这里是 Mainnet WETH 地址，如在本地测试可自行替换
+const WETH_ADDRESS = "0x988b124648e0c83d2c2e60e91df8f290a76fd0ae"; // 这里是 Mainnet WETH 地址，如在本地测试可自行替换
 
 interface SwapInterfaceProps {
   poolAddress: Address;
   routerAddress?: Address; // 可选，如果不提供则使用deployedContracts中的地址
   wethAddress?: Address; // 允许传递WETH地址以适应不同网络
   onSwapCompleted?: () => void; // 交易完成后的回调
+  autoExecute?: boolean;
+  initialAmount?: string;
+  initialTokenIn?: string;
+  initialTokenOut?: string;
 }
 
 export const SwapInterface = ({ 
   poolAddress, 
   routerAddress = ROUTER_ADDRESS as Address,
   wethAddress = WETH_ADDRESS as Address,
-  onSwapCompleted
+  onSwapCompleted,
+  autoExecute = false,
+  initialAmount,
+  initialTokenIn,
+  initialTokenOut
 }: SwapInterfaceProps) => {
   // 基本状态
   const [amount, setAmount] = useState("");
@@ -339,6 +347,47 @@ export const SwapInterface = ({
       setExpectedOutput("");
     }
   }, [amount, reserves, inputToken, outputToken, isSwapReversed, inputTokenDecimals, outputTokenDecimals]);
+
+  // 自动执行相关的useEffect
+  useEffect(() => {
+    if (autoExecute && initialAmount) {
+      console.log("Auto-execute swap enabled");
+      console.log("Initial amount:", initialAmount);
+      
+      const setupAndExecuteSwap = async () => {
+        try {
+          // 设置初始值
+          setAmount(initialAmount);
+          
+          // 等待代币信息加载
+          if (!token0Address || !token1Address || !reserves) {
+            console.log("Waiting for token info to load...");
+            return;
+          }
+
+          console.log("Token info loaded, checking approvals...");
+          
+          // 检查是否需要授权
+          if (needsApproval) {
+            console.log("Approval needed");
+            await handleApprove();
+          }
+
+          console.log("Executing swap...");
+          // 执行交易
+          await handleSwap();
+          
+          // 调用完成回调
+          onSwapCompleted?.();
+        } catch (error) {
+          console.error("Auto-execute swap failed:", error);
+          notification.error("Failed to auto-execute swap");
+        }
+      };
+
+      setupAndExecuteSwap();
+    }
+  }, [autoExecute, initialAmount, token0Address, token1Address, reserves, needsApproval]);
 
   /**
    * 用户输入交易金额时的处理
