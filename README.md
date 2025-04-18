@@ -1,21 +1,42 @@
-# 🏗 Scaffold-ETH 2
+# 🦄 Uniswap V2 Natural Language Interface
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
+  A natural language interface for Uniswap V2, powered by LLM
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+🧪 This project implements a natural language interface for Uniswap V2, allowing users to interact with the protocol using plain English commands. It's built on top of Scaffold-ETH 2 and integrates Large Language Models (LLM) to provide a more intuitive way to interact with DeFi protocols.
 
-⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
+⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, Typescript, and OpenAI's GPT-4.
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+## Features
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+- 💬 **Natural Language Commands**: Interact with Uniswap V2 using plain English
+- 🔄 **Token Swaps**: Execute swaps with simple commands like "swap 10 USDC for ETH"
+- 💧 **Liquidity Management**: Add/remove liquidity with natural language
+- 📊 **Pool Analytics**: Query pool information and visualize data
+- 🤖 **LLM Integration**: Powered by OpenAI's GPT-4 for command parsing
+- 🎨 **Interactive UI**: Clean and intuitive interface with real-time feedback
+
+## Supported Commands
+
+### Swap Tokens
+```plaintext
+"swap 10 USDC for ETH"
+"exchange 5 DAI to WETH"
+```
+
+### Add Liquidity
+```plaintext
+"deposit 5 USDC and 0.1 ETH"
+"add 1000 USDT and 1 WBTC to liquidity"
+```
+
+### Query Pool Information
+```plaintext
+"what are the reserves of the USDC-ETH pool"
+"show me the swap count for WBTC-ETH pool today"
+"display price distribution for DAI-USDC pool"
+```
 
 ## Requirements
 
@@ -24,57 +45,76 @@ Before you begin, you need to install the following tools:
 - [Node (>= v20.18.3)](https://nodejs.org/en/download/)
 - Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
 - [Git](https://git-scm.com/downloads)
+- OpenAI API Key (for LLM functionality)
 
 ## Quickstart
 
-To get started with Scaffold-ETH 2, follow the steps below:
-
-1. Install dependencies if it was skipped in CLI:
-
-```
-cd my-dapp-example
+1. Clone the repository and install dependencies:
+```bash
+git clone [your-repo-url]
+cd uniswap-nl-interface
 yarn install
 ```
 
-2. Run a local network in the first terminal:
-
+2. Set up environment variables:
+```bash
+cp packages/nextjs/.env.example packages/nextjs/.env.local
 ```
+Edit `.env.local` and add your OpenAI API key:
+```
+NEXT_PUBLIC_OPENAI_API_KEY=your-api-key
+```
+
+3. Run a local network:
+```bash
 yarn chain
 ```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
-
-3. On a second terminal, deploy the test contract:
-
-```
+4. Deploy the contracts:
+```bash
 yarn deploy
 ```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
-
-4. On a third terminal, start your NextJS app:
-
-```
+5. Start the development server:
+```bash
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Visit your app at: `http://localhost:3000/nl-interface`
 
-Run smart contract test with `yarn foundry:test`
+## Project Structure
 
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
+- `packages/nextjs/components/uniswap/`
+  - `NLProcessor.tsx`: Main component for natural language processing
+  - `PoolQueryExecutor.tsx`: Handles pool-related queries
+  - `TransactionExecutor.tsx`: Manages token swaps and liquidity
+  - `SwapPriceDistribution.tsx`: Visualizes price data
+  - `NLInput.tsx`: User input interface
 
+## Environment Variables
 
-## Documentation
+Required environment variables:
+```env
+NEXT_PUBLIC_OPENAI_API_KEY=your-openai-api-key
+NEXT_PUBLIC_DEFAULT_LLM_MODEL=gpt-4
+NEXT_PUBLIC_OPEN_SOURCE_ENDPOINT=optional-open-source-llm-endpoint
+```
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+## Security Considerations
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+- API keys are stored in environment variables
+- Client-side implementation includes appropriate warnings
+- Error handling for API failures
+- Consider using a backend proxy for production deployment
 
-## Contributing to Scaffold-ETH 2
+## Contributing
 
-We welcome contributions to Scaffold-ETH 2!
+We welcome contributions to improve the natural language interface! Please feel free to:
+- Add support for more complex commands
+- Improve error handling
+- Add new visualizations
+- Enhance the LLM integration
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
